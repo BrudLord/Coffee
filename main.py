@@ -3,12 +3,14 @@ import sys
 from PyQt5 import uic
 from PyQt5.QtWidgets import QApplication
 from PyQt5.QtWidgets import QMainWindow, QTableWidgetItem
+from main_ui import Ui_MainWindow
+from addEditCoffeeForm import Ui_smWin
 
 
-class Main(QMainWindow):
+class Main(QMainWindow, Ui_MainWindow):
     def __init__(self):
         super().__init__()
-        uic.loadUi('main.ui', self)
+        self.setupUi(self)
         self.setWindowTitle('Coffee')
         self.tab.cellClicked.connect(self.iz_cof)
         self.add_cofe.clicked.connect(self.ad_cof)
@@ -22,7 +24,6 @@ class Main(QMainWindow):
         ad.name.setText(res[1])
         ad.obz.setCurrentIndex(res[2] - 1)
         ad.molot.setCurrentIndex(res[3] - 1)
-        print(res)
         ad.ob.setValue(res[6])
         ad.price.setValue(res[5])
         ad.vkus.setText(res[4])
@@ -41,7 +42,7 @@ class Main(QMainWindow):
         self.connection.close()
 
     def agg(self):
-        self.connection = sqlite3.connect("coffee.sqlite")
+        self.connection = sqlite3.connect("data/coffee.sqlite")
         self.cur = self.connection.cursor()
         res = self.cur.execute("""SELECT ID, Sortes_name, Stepen_obzharki, Vid, Opisanie_vkusa, Price, Volume from cofe""").fetchall()
         vids = self.cur.execute("""SELECT ID, Vid from vid""").fetchall()
@@ -57,7 +58,6 @@ class Main(QMainWindow):
                 if j[0] == res[i][2]:
                     res[i][2] = j[1]
                     break
-        print(res)
         name = ['id', 'Название сорта', 'Степень обжарки', 'Молотый/В зернах', 'Описание вкуса', 'Цена', 'Объем упаковки']
         self.tab.setColumnCount(len(name))
         for i in range(len(name)):
@@ -72,16 +72,16 @@ class Main(QMainWindow):
         self.tab.resizeColumnToContents(0)
 
 
-class Add_cofe(QMainWindow):
+class Add_cofe(QMainWindow, Ui_smWin):
     def __init__(self):
         super().__init__()
-        uic.loadUi('addEditCoffeeForm.ui', self)
+        self.setupUi(self)
         self.setWindowTitle('Add coffee')
         self.save.clicked.connect(self.sav)
 
     def sav(self):
         global izm
-        self.connection = sqlite3.connect("coffee.sqlite")
+        self.connection = sqlite3.connect("data/coffee.sqlite")
         self.cur = self.connection.cursor()
         if izm:
             vids = self.cur.execute("""SELECT ID, Vid from vid""").fetchall()
@@ -122,7 +122,6 @@ class Add_cofe(QMainWindow):
             ad.price.setValue(1)
             ad.vkus.setText('')
         else:
-            print(1)
             vids = self.cur.execute("""SELECT ID, Vid from vid""").fetchall()
             obzh = self.cur.execute("""SELECT ID, Obzharka from obzharka""").fetchall()
             obzhar = ''
@@ -135,9 +134,7 @@ class Add_cofe(QMainWindow):
                 if j[1] == self.obz.currentText():
                     obzhar = j[0]
                     break
-            print([int(ad.idd.text()), self.name.text(), obzhar, vd, self.vkus.text(), self.price.value(), self.ob.value()])
             self.cur.execute('''INSERT INTO cofe(ID, Sortes_name, Stepen_obzharki, Vid, Opisanie_vkusa, Price, Volume) VALUES(?, ?, ?, ?, ?, ?, ?)''', (int(ad.idd.text()), self.name.text(), obzhar, vd, self.vkus.text(), self.price.value(), self.ob.value(), ))
-            print(3)
             ad.idd.setText('1')
             ad.name.setText('')
             ad.obz.setCurrentIndex(0)
